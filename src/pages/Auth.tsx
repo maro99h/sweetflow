@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,21 +14,37 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Loader2, CheckCircle } from "lucide-react";
+import { AlertCircle, Loader2, CheckCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Enhanced email regex for better validation
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+// Enhanced password regex for security requirements
+const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+
 const loginSchema = z.object({
-  email: z.string().email("נא להזין כתובת אימייל חוקית"),
+  email: z.string()
+    .email("נא להזין כתובת אימייל חוקית")
+    .regex(emailRegex, "נא להזין כתובת אימייל חוקית"),
   password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
 });
 
 const registerSchema = z.object({
-  email: z.string().email("נא להזין כתובת אימייל חוקית"),
-  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
-  confirmPassword: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
+  email: z.string()
+    .email("נא להזין כתובת אימייל חוקית")
+    .regex(emailRegex, "נא להזין כתובת אימייל חוקית"),
+  password: z.string()
+    .min(8, "סיסמה חייבת להכיל לפחות 8 תווים")
+    .regex(
+      passwordRegex,
+      "הסיסמה חייבת לכלול לפחות מספר אחד ותו מיוחד אחד"
+    ),
+  confirmPassword: z.string().min(8, "סיסמה חייבת להכיל לפחות 8 תווים"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "הסיסמאות אינן תואמות",
   path: ["confirmPassword"],
@@ -41,15 +57,26 @@ const Auth = () => {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [isEmailConfirmationPending, setIsEmailConfirmationPending] = useState(false);
   const { signIn, signUp, isLoading, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // Check for email confirmation in URL
+    const queryParams = new URLSearchParams(location.search);
+    const hasConfirmation = queryParams.get("confirmation") === "true";
+    
+    if (hasConfirmation) {
+      setSuccessMsg("האימייל שלך אומת בהצלחה! כעת תוכל להתחבר.");
+      setMode("login");
+    }
+    
     // If user is already logged in, redirect to dashboard
     if (user) {
       navigate("/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, location]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -57,6 +84,7 @@ const Auth = () => {
       email: "",
       password: "",
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   const registerForm = useForm<RegisterFormValues>({
@@ -66,12 +94,14 @@ const Auth = () => {
       password: "",
       confirmPassword: "",
     },
+    mode: "onChange", // Enable real-time validation
   });
 
   // Reset forms and errors when switching modes
   useEffect(() => {
     setServerError(null);
     setSuccessMsg(null);
+    setIsEmailConfirmationPending(false);
     
     if (mode === "login") {
       loginForm.reset();
@@ -83,14 +113,15 @@ const Auth = () => {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setServerError(null);
     try {
-      const { error, data: authData } = await signIn(data.email, data.password);
+      const { error, data: authData, requiresEmailConfirmation } = await signIn(data.email, data.password);
       
       if (error) {
         console.error("Login error:", error);
         if (error.message.includes("Invalid login")) {
           setServerError("שם משתמש או סיסמה שגויים. אנא נסה שוב.");
-        } else if (error.message.includes("Email not confirmed")) {
+        } else if (error.message.includes("Email not confirmed") || requiresEmailConfirmation) {
           setServerError("נא לאמת את כתובת האימייל לפני הכניסה.");
+          setIsEmailConfirmationPending(true);
         } else {
           setServerError(error.message || "אירעה שגיאה במהלך הכניסה.");
         }
@@ -126,6 +157,7 @@ const Auth = () => {
       }
       
       setSuccessMsg("ההרשמה הצליחה! בדוק את האימייל שלך לאימות החשבון.");
+      setIsEmailConfirmationPending(true);
       toast({
         title: "ההרשמה הצליחה!",
         description: "אנא בדוק את האימייל שלך לאימות החשבון.",
@@ -161,6 +193,15 @@ const Auth = () => {
             <AlertDescription>{successMsg}</AlertDescription>
           </Alert>
         )}
+
+        {isEmailConfirmationPending && (
+          <Alert className="mb-6 bg-[#f0f9ff] border-blue-200 text-blue-800">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              שלחנו לך אימייל לאימות חשבונך. אנא בדוק את תיבת הדואר שלך (כולל תיקיית הספאם) ולחץ על הקישור לאימות.
+            </AlertDescription>
+          </Alert>
+        )}
         
         {mode === "login" ? (
           <>
@@ -176,6 +217,7 @@ const Auth = () => {
                         <Input
                           dir="ltr"
                           placeholder="you@example.com"
+                          autoComplete="email"
                           {...field}
                         />
                       </FormControl>
@@ -193,6 +235,7 @@ const Auth = () => {
                         <Input
                           type="password"
                           placeholder="••••••••"
+                          autoComplete="current-password"
                           {...field}
                         />
                       </FormControl>
@@ -239,6 +282,7 @@ const Auth = () => {
                         <Input
                           dir="ltr"
                           placeholder="you@example.com"
+                          autoComplete="email"
                           {...field}
                         />
                       </FormControl>
@@ -256,9 +300,13 @@ const Auth = () => {
                         <Input
                           type="password"
                           placeholder="••••••••"
+                          autoComplete="new-password"
                           {...field}
                         />
                       </FormControl>
+                      <FormDescription className="text-xs text-gray-500">
+                        הסיסמה חייבת להכיל לפחות 8 תווים, מספר אחד ותו מיוחד אחד.
+                      </FormDescription>
                       <FormMessage className="text-right" />
                     </FormItem>
                   )}
@@ -273,6 +321,7 @@ const Auth = () => {
                         <Input
                           type="password"
                           placeholder="••••••••"
+                          autoComplete="new-password"
                           {...field}
                         />
                       </FormControl>

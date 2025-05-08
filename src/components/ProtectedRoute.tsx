@@ -37,7 +37,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     console.log("No user found, redirecting to auth page");
-    return <Navigate to="/auth" replace />;
+    // Save the current path to redirect back after login
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   return <>{children}</>;

@@ -16,6 +16,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{
     error: any | null;
     data: any | null;
+    requiresEmailConfirmation?: boolean;
   }>;
   signOut: () => Promise<void>;
 };
@@ -65,8 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error("Error getting session:", error);
         toast({
-          title: "Authentication Error",
-          description: "There was a problem loading your session.",
+          title: "תקלה באימות",
+          description: "אירעה שגיאה בטעינת הפרופיל שלך.",
           variant: "destructive",
         });
       } finally {
@@ -88,6 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin + "/auth?confirmation=true",
+        }
       });
       console.log("Signup response:", response);
       
@@ -110,6 +114,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       console.log("Signin response:", response);
       
+      // Handle email confirmation issues
+      if (response.error && response.error.message.includes("Email not confirmed")) {
+        return { 
+          data: null, 
+          error: response.error,
+          requiresEmailConfirmation: true
+        };
+      }
+      
       return response;
     } catch (error) {
       console.error("Signin error caught:", error);
@@ -124,14 +137,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await supabase.auth.signOut();
       toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
+        title: "התנתקת בהצלחה",
+        description: "התנתקת מהחשבון שלך.",
       });
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
-        title: "Sign out error",
-        description: "There was a problem signing you out.",
+        title: "תקלה בהתנתקות",
+        description: "אירעה שגיאה בעת ההתנתקות.",
         variant: "destructive",
       });
     } finally {
