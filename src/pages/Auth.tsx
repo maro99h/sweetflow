@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,20 +17,20 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, CheckCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("נא להזין כתובת אימייל חוקית"),
+  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
 });
 
 const registerSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("נא להזין כתובת אימייל חוקית"),
+  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
+  confirmPassword: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "הסיסמאות אינן תואמות",
   path: ["confirmPassword"],
 });
 
@@ -40,8 +40,16 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [serverError, setServerError] = useState<string | null>(null);
-  const { signIn, signUp, isLoading } = useAuth();
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const { signIn, signUp, isLoading, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // If user is already logged in, redirect to dashboard
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -60,58 +68,76 @@ const Auth = () => {
     },
   });
 
+  // Reset forms and errors when switching modes
+  useEffect(() => {
+    setServerError(null);
+    setSuccessMsg(null);
+    
+    if (mode === "login") {
+      loginForm.reset();
+    } else {
+      registerForm.reset();
+    }
+  }, [mode, loginForm, registerForm]);
+
   const onLoginSubmit = async (data: LoginFormValues) => {
     setServerError(null);
     try {
-      const { error } = await signIn(data.email, data.password);
+      const { error, data: authData } = await signIn(data.email, data.password);
       
       if (error) {
         console.error("Login error:", error);
         if (error.message.includes("Invalid login")) {
-          setServerError("Incorrect email or password. Please try again.");
+          setServerError("שם משתמש או סיסמה שגויים. אנא נסה שוב.");
         } else if (error.message.includes("Email not confirmed")) {
-          setServerError("Please verify your email before logging in.");
+          setServerError("נא לאמת את כתובת האימייל לפני הכניסה.");
         } else {
-          setServerError(error.message || "An error occurred during login.");
+          setServerError(error.message || "אירעה שגיאה במהלך הכניסה.");
         }
         return;
       }
       
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully logged in.",
-      });
+      if (authData?.user) {
+        toast({
+          title: "ברוכים הבאים!",
+          description: "נכנסת בהצלחה למערכת.",
+        });
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error("Unexpected login error:", error);
-      setServerError(error.message || "An unexpected error occurred.");
+      setServerError(error.message || "אירעה שגיאה בלתי צפויה.");
     }
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setServerError(null);
     try {
-      const { error } = await signUp(data.email, data.password);
+      const { error, data: authData } = await signUp(data.email, data.password);
       
       if (error) {
         console.error("Signup error:", error);
         if (error.message.includes("already registered")) {
-          setServerError("Oops! Looks like you're already signed up. Try logging in instead.");
+          setServerError("כתובת האימייל כבר רשומה במערכת. נסה להתחבר במקום.");
         } else {
-          setServerError(error.message || "An error occurred during registration.");
+          setServerError(error.message || "אירעה שגיאה במהלך ההרשמה.");
         }
         return;
       }
       
+      setSuccessMsg("ההרשמה הצליחה! בדוק את האימייל שלך לאימות החשבון.");
       toast({
-        title: "Registration successful!",
-        description: "Please check your email to confirm your account. You can now proceed to log in.",
+        title: "ההרשמה הצליחה!",
+        description: "אנא בדוק את האימייל שלך לאימות החשבון.",
       });
       
       // Switch to login mode after successful registration
-      setMode("login");
+      setTimeout(() => {
+        setMode("login");
+      }, 3000);
     } catch (error: any) {
       console.error("Unexpected signup error:", error);
-      setServerError(error.message || "An unexpected error occurred.");
+      setServerError(error.message || "אירעה שגיאה בלתי צפויה.");
     }
   };
 
@@ -119,13 +145,20 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#FFE8D6]">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-center text-[#A47149] mb-6">
-          {mode === "login" ? "Welcome Back" : "Create Account"}
+          {mode === "login" ? "כניסה למערכת" : "יצירת חשבון"}
         </h1>
         
         {serverError && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{serverError}</AlertDescription>
+          </Alert>
+        )}
+
+        {successMsg && (
+          <Alert variant="default" className="mb-6 bg-[#C4D6B0] text-white">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{successMsg}</AlertDescription>
           </Alert>
         )}
         
@@ -138,9 +171,13 @@ const Auth = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>אימייל</FormLabel>
                       <FormControl>
-                        <Input placeholder="you@example.com" {...field} />
+                        <Input
+                          dir="ltr"
+                          placeholder="you@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -151,9 +188,13 @@ const Auth = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>סיסמה</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -166,20 +207,20 @@ const Auth = () => {
                   disabled={isLoading || loginForm.formState.isSubmitting}
                 >
                   {(isLoading || loginForm.formState.isSubmitting) ? 
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...</> : 
-                    "Log in"}
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> מתחבר...</> : 
+                    "כניסה"}
                 </Button>
               </form>
             </Form>
             
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
+                אין לך חשבון?{" "}
                 <button 
                   onClick={() => setMode("register")} 
                   className="text-[#A47149] font-medium hover:underline"
                 >
-                  Sign up
+                  הרשמה
                 </button>
               </p>
             </div>
@@ -193,9 +234,13 @@ const Auth = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>אימייל</FormLabel>
                       <FormControl>
-                        <Input placeholder="you@example.com" {...field} />
+                        <Input
+                          dir="ltr"
+                          placeholder="you@example.com"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -206,11 +251,15 @@ const Auth = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>סיסמה</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-right" />
                     </FormItem>
                   )}
                 />
@@ -219,11 +268,15 @@ const Auth = () => {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
+                      <FormLabel>אימות סיסמה</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-right" />
                     </FormItem>
                   )}
                 />
@@ -234,20 +287,20 @@ const Auth = () => {
                   disabled={isLoading || registerForm.formState.isSubmitting}
                 >
                   {(isLoading || registerForm.formState.isSubmitting) ? 
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : 
-                    "Create account"}
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> יוצר חשבון...</> : 
+                    "יצירת חשבון"}
                 </Button>
               </form>
             </Form>
             
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
-                Already have an account?{" "}
+                יש לך כבר חשבון?{" "}
                 <button 
                   onClick={() => setMode("login")} 
                   className="text-[#A47149] font-medium hover:underline"
                 >
-                  Log in
+                  כניסה
                 </button>
               </p>
             </div>
