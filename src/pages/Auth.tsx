@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const loginSchema = z.object({
@@ -40,7 +40,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const Auth = () => {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [serverError, setServerError] = useState<string | null>(null);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const loginForm = useForm<LoginFormValues>({
@@ -66,6 +66,7 @@ const Auth = () => {
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
+        console.error("Login error:", error);
         if (error.message.includes("Invalid login")) {
           setServerError("Incorrect email or password. Please try again.");
         } else if (error.message.includes("Email not confirmed")) {
@@ -80,9 +81,8 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      
-      navigate("/dashboard");
     } catch (error: any) {
+      console.error("Unexpected login error:", error);
       setServerError(error.message || "An unexpected error occurred.");
     }
   };
@@ -93,6 +93,7 @@ const Auth = () => {
       const { error } = await signUp(data.email, data.password);
       
       if (error) {
+        console.error("Signup error:", error);
         if (error.message.includes("already registered")) {
           setServerError("Oops! Looks like you're already signed up. Try logging in instead.");
         } else {
@@ -103,11 +104,13 @@ const Auth = () => {
       
       toast({
         title: "Registration successful!",
-        description: "Please check your email to confirm your account.",
+        description: "Please check your email to confirm your account. You can now proceed to log in.",
       });
       
+      // Switch to login mode after successful registration
       setMode("login");
     } catch (error: any) {
+      console.error("Unexpected signup error:", error);
       setServerError(error.message || "An unexpected error occurred.");
     }
   };
@@ -160,9 +163,11 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-[#A47149] hover:bg-[#8B5E3C]"
-                  disabled={loginForm.formState.isSubmitting}
+                  disabled={isLoading || loginForm.formState.isSubmitting}
                 >
-                  {loginForm.formState.isSubmitting ? "Logging in..." : "Log in"}
+                  {(isLoading || loginForm.formState.isSubmitting) ? 
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...</> : 
+                    "Log in"}
                 </Button>
               </form>
             </Form>
@@ -226,9 +231,11 @@ const Auth = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-[#A47149] hover:bg-[#8B5E3C]"
-                  disabled={registerForm.formState.isSubmitting}
+                  disabled={isLoading || registerForm.formState.isSubmitting}
                 >
-                  {registerForm.formState.isSubmitting ? "Creating account..." : "Create account"}
+                  {(isLoading || registerForm.formState.isSubmitting) ? 
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : 
+                    "Create account"}
                 </Button>
               </form>
             </Form>
