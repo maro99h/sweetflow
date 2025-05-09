@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, PlusIcon, BookIcon, MessageSquareIcon, DollarSignIcon, UserIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, BookIcon, DollarSignIcon, UserIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -30,10 +30,6 @@ const Dashboard = () => {
       case "manageRecipes":
         // Will navigate to Manage Recipes page when implemented
         console.log("Navigate to Manage Recipes");
-        break;
-      case "chatAssistant":
-        // Will open Chat Assistant when implemented
-        console.log("Open Chat Assistant");
         break;
       default:
         break;
@@ -159,7 +155,7 @@ const Dashboard = () => {
         {/* Shortcut buttons */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-medium text-[#A47149] mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button 
               onClick={() => handleShortcutClick("addOrder")}
               className="bg-[#A47149] hover:bg-[#8B5E3C] text-white flex items-center justify-center h-12"
@@ -171,12 +167,6 @@ const Dashboard = () => {
               className="bg-[#A47149] hover:bg-[#8B5E3C] text-white flex items-center justify-center h-12"
             >
               <BookIcon className="mr-2 h-5 w-5" /> Manage Recipes
-            </Button>
-            <Button 
-              onClick={() => handleShortcutClick("chatAssistant")}
-              className="bg-[#A47149] hover:bg-[#8B5E3C] text-white flex items-center justify-center h-12"
-            >
-              <MessageSquareIcon className="mr-2 h-5 w-5" /> AI Chat Assistant
             </Button>
           </div>
         </div>
