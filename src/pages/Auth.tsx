@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Form,
@@ -24,8 +25,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 // Enhanced email regex for better validation
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// Enhanced password regex for security requirements
-const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+// Enhanced password regex for security requirements - only English letters and numbers
+const passwordRegex = /^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9!@#$%^&*]{8,}$/;
 
 const loginSchema = z.object({
   email: z.string()
@@ -35,6 +36,8 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
+  fullName: z.string().min(2, "נא להזין שם מלא"),
+  phoneNumber: z.string().min(9, "נא להזין מספר טלפון תקין"),
   email: z.string()
     .email("נא להזין כתובת אימייל חוקית")
     .regex(emailRegex, "נא להזין כתובת אימייל חוקית"),
@@ -42,7 +45,7 @@ const registerSchema = z.object({
     .min(8, "סיסמה חייבת להכיל לפחות 8 תווים")
     .regex(
       passwordRegex,
-      "הסיסמה חייבת לכלול לפחות מספר אחד ותו מיוחד אחד"
+      "הסיסמה חייבת לכלול לפחות מספר אחד ואותיות באנגלית"
     ),
   confirmPassword: z.string().min(8, "סיסמה חייבת להכיל לפחות 8 תווים"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -90,6 +93,8 @@ const Auth = () => {
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
+      fullName: "",
+      phoneNumber: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -154,6 +159,21 @@ const Auth = () => {
           setServerError(error.message || "אירעה שגיאה במהלך ההרשמה.");
         }
         return;
+      }
+      
+      // If registration is successful, save user metadata to Supabase
+      if (authData?.user) {
+        // Update user metadata with fullName and phoneNumber
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: {
+            full_name: data.fullName,
+            phone_number: data.phoneNumber,
+          }
+        });
+
+        if (metadataError) {
+          console.error("Error updating user metadata:", metadataError);
+        }
       }
       
       setSuccessMsg("ההרשמה הצליחה! בדוק את האימייל שלך לאימות החשבון.");
@@ -274,6 +294,42 @@ const Auth = () => {
               <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
                 <FormField
                   control={registerForm.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>שם מלא</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="ישראל ישראלי"
+                          autoComplete="name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>מספר טלפון</FormLabel>
+                      <FormControl>
+                        <Input
+                          dir="ltr"
+                          placeholder="050-0000000"
+                          type="tel"
+                          autoComplete="tel"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
@@ -305,7 +361,7 @@ const Auth = () => {
                         />
                       </FormControl>
                       <FormDescription className="text-xs text-gray-500">
-                        הסיסמה חייבת להכיל לפחות 8 תווים, מספר אחד ותו מיוחד אחד.
+                        הסיסמה חייבת להכיל לפחות 8 תווים, אותיות באנגלית ומספרים.
                       </FormDescription>
                       <FormMessage className="text-right" />
                     </FormItem>
