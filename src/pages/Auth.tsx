@@ -303,6 +303,11 @@ const Auth = () => {
                           placeholder="ישראל ישראלי"
                           autoComplete="name"
                           {...field}
+                          onChange={(e) => {
+                            console.log("fullName changed:", e.target.value);
+                            field.onChange(e);
+                          }}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -322,6 +327,11 @@ const Auth = () => {
                           type="tel"
                           autoComplete="tel"
                           {...field}
+                          onChange={(e) => {
+                            console.log("phoneNumber changed:", e.target.value);
+                            field.onChange(e);
+                          }}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -340,6 +350,7 @@ const Auth = () => {
                           placeholder="you@example.com"
                           autoComplete="email"
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -358,6 +369,7 @@ const Auth = () => {
                           placeholder="••••••••"
                           autoComplete="new-password"
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormDescription className="text-xs text-gray-500">
@@ -379,6 +391,7 @@ const Auth = () => {
                           placeholder="••••••••"
                           autoComplete="new-password"
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage className="text-right" />
