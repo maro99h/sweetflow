@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, PlusIcon, SettingsIcon, BookIcon, MenuIcon, ListIcon, ArrowRightIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, SettingsIcon, BookIcon, MenuIcon, ListIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -158,7 +158,7 @@ const Dashboard = () => {
                 className="text-[#A47149] hover:text-[#A47149] hover:bg-[#C4D6B0]/20 w-full justify-start p-0"
                 onClick={() => handleNavClick("orders")}
               >
-                View all orders <ArrowRightIcon className="ml-1 h-4 w-4" />
+                View all orders
               </Button>
             </CardFooter>
           </Card>
@@ -186,7 +186,7 @@ const Dashboard = () => {
                 className="text-[#A47149] hover:text-[#A47149] hover:bg-[#C4D6B0]/20 w-full justify-start p-0"
                 onClick={() => handleNavClick("orders")}
               >
-                View upcoming orders <ArrowRightIcon className="ml-1 h-4 w-4" />
+                View upcoming orders
               </Button>
             </CardFooter>
           </Card>
