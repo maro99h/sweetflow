@@ -10,7 +10,6 @@ const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [activeNav, setActiveNav] = useState<string>("orders");
 
   // Animation style for card hover effect
   const getCardStyle = (cardId: string) => {
@@ -23,15 +22,14 @@ const Dashboard = () => {
 
   // Handle navigation
   const handleNavClick = (navItem: string) => {
-    setActiveNav(navItem);
-    // Future navigation implementation
     console.log(`Navigate to ${navItem}`);
+    // Future navigation implementation when routes are added
   };
 
   // Handle add order button click
   const handleAddOrder = () => {
-    // Will navigate to Add Order page when implemented
     console.log("Navigate to Add Order");
+    // Will navigate to Add Order page when implemented
   };
 
   return (
@@ -52,69 +50,49 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main navigation menu */}
-      <nav className="bg-[#C4D6B0] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center space-x-8">
-            <button
-              className={`px-3 py-4 text-sm font-medium transition-colors ${
-                activeNav === "orders" 
-                  ? "text-[#A47149] border-b-2 border-[#A47149]" 
-                  : "text-gray-700 hover:text-[#A47149]"
-              }`}
+      {/* Top navigation buttons */}
+      <div className="bg-white shadow-sm mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex space-x-6 overflow-x-auto">
+            <Button 
+              variant="ghost" 
+              className="flex items-center text-[#A47149] hover:bg-[#C4D6B0]/20"
               onClick={() => handleNavClick("orders")}
             >
-              <div className="flex items-center gap-1">
-                <ListIcon className="h-4 w-4" />
-                Orders
-              </div>
-            </button>
-            <button
-              className={`px-3 py-4 text-sm font-medium transition-colors ${
-                activeNav === "settings" 
-                  ? "text-[#A47149] border-b-2 border-[#A47149]" 
-                  : "text-gray-700 hover:text-[#A47149]"
-              }`}
-              onClick={() => handleNavClick("settings")}
+              <ListIcon className="mr-2 h-5 w-5" />
+              Orders
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="flex items-center text-[#A47149] hover:bg-[#C4D6B0]/20"
+              onClick={() => handleNavClick("clients")}
             >
-              <div className="flex items-center gap-1">
-                <SettingsIcon className="h-4 w-4" />
-                Settings
-              </div>
-            </button>
-            <button
-              className={`px-3 py-4 text-sm font-medium transition-colors ${
-                activeNav === "recipes" 
-                  ? "text-[#A47149] border-b-2 border-[#A47149]" 
-                  : "text-gray-700 hover:text-[#A47149]"
-              }`}
+              <MenuIcon className="mr-2 h-5 w-5" />
+              Clients
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="flex items-center text-[#A47149] hover:bg-[#C4D6B0]/20"
               onClick={() => handleNavClick("recipes")}
             >
-              <div className="flex items-center gap-1">
-                <BookIcon className="h-4 w-4" />
-                Recipes
-              </div>
-            </button>
-            <button
-              className={`px-3 py-4 text-sm font-medium transition-colors ${
-                activeNav === "menu" 
-                  ? "text-[#A47149] border-b-2 border-[#A47149]" 
-                  : "text-gray-700 hover:text-[#A47149]"
-              }`}
-              onClick={() => handleNavClick("menu")}
+              <BookIcon className="mr-2 h-5 w-5" />
+              Recipes
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="flex items-center text-[#A47149] hover:bg-[#C4D6B0]/20"
+              onClick={() => handleNavClick("settings")}
             >
-              <div className="flex items-center gap-1">
-                <MenuIcon className="h-4 w-4" />
-                Menu
-              </div>
-            </button>
+              <SettingsIcon className="mr-2 h-5 w-5" />
+              Settings
+            </Button>
           </div>
         </div>
-      </nav>
+      </div>
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Welcome message with user's name */}
-        <div className="bg-white rounded-lg shadow-md p-6 animate-fade-in">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold text-[#A47149]">
             Welcome, {user?.email?.split('@')[0] || 'Baker'}!
           </h2>
