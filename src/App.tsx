@@ -10,6 +10,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+import OrdersPage from "./pages/Orders";
+import ClientsPage from "./pages/Clients";
+import RecipesPage from "./pages/Recipes";
+import SettingsPage from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +32,38 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/orders/*" 
+              element={
+                <ProtectedRoute>
+                  <OrdersPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/clients/*" 
+              element={
+                <ProtectedRoute>
+                  <ClientsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/recipes/*" 
+              element={
+                <ProtectedRoute>
+                  <RecipesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
                 </ProtectedRoute>
               } 
             />

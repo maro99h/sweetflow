@@ -3,42 +3,49 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, PlusIcon, SettingsIcon, BookIcon, MenuIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, SettingsIcon, BookIcon, UsersIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Header from "@/components/Header";
+
+// Array of engaging bakery/confectionery-related messages
+const welcomeMessages = [
+  "Fresh ideas for your sweet creations today!",
+  "Ready to create something delicious?",
+  "Managing your bakery just got sweeter!",
+  "Organize your recipes and delight your customers!",
+  "Streamline your sweet business operations today!",
+  "Let's bake success into your business!",
+  "Your confectionery management just got easier!",
+  "Whipping up organization for your bakery!",
+  "Sweet success starts with good planning!",
+  "Making your bakery business run as smooth as fondant!"
+];
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [welcomeMessage, setWelcomeMessage] = useState("");
+  
+  useEffect(() => {
+    // Select a random welcome message on page load
+    const randomIndex = Math.floor(Math.random() * welcomeMessages.length);
+    setWelcomeMessage(welcomeMessages[randomIndex]);
+  }, []);
 
   // Handle navigation
   const handleNavClick = (path: string) => {
-    console.log(`Navigate to ${path}`);
-    // Future navigation implementation when routes are added
+    navigate(path);
   };
 
   // Handle add order button click
   const handleAddOrder = () => {
-    console.log("Navigate to Add Order");
-    // Will navigate to Add Order page when implemented
+    navigate("/orders/add");
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">SweetFlow</h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-gray-600">{user?.email}</span>
-            <Button 
-              variant="outline" 
-              onClick={signOut}
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Navigation Menu */}
@@ -49,40 +56,47 @@ const Dashboard = () => {
                 <NavigationMenuTrigger>Orders</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-4 w-[400px]">
-                    <div className="row-span-3">
-                      <NavigationMenuLink asChild>
-                        <a
-                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-rose-500 to-indigo-700 p-6 no-underline outline-none focus:shadow-md"
-                          onClick={() => handleNavClick("new-order")}
-                        >
-                          <div className="mt-4 mb-2 text-lg font-medium text-white">
-                            New Order
-                          </div>
-                          <p className="text-sm leading-tight text-white/90">
-                            Create a new order for your clients
-                          </p>
-                        </a>
-                      </NavigationMenuLink>
-                    </div>
                     <NavigationMenuLink asChild>
                       <a
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        onClick={() => handleNavClick("order-history")}
+                        onClick={() => handleNavClick("/orders/new")}
                       >
-                        <div className="text-sm font-medium leading-none">Order History</div>
+                        <div className="text-sm font-medium leading-none">New Orders</div>
                         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          View and manage all your previous orders
+                          View and manage new incoming orders
                         </p>
                       </a>
                     </NavigationMenuLink>
                     <NavigationMenuLink asChild>
                       <a
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        onClick={() => handleNavClick("order-templates")}
+                        onClick={() => handleNavClick("/orders/in-progress")}
                       >
-                        <div className="text-sm font-medium leading-none">Order Templates</div>
+                        <div className="text-sm font-medium leading-none">In Progress</div>
                         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                          Create and use templates for recurring orders
+                          View orders currently being prepared
+                        </p>
+                      </a>
+                    </NavigationMenuLink>
+                    <NavigationMenuLink asChild>
+                      <a
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => handleNavClick("/orders/completed")}
+                      >
+                        <div className="text-sm font-medium leading-none">Completed</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          View all fulfilled and delivered orders
+                        </p>
+                      </a>
+                    </NavigationMenuLink>
+                    <NavigationMenuLink asChild>
+                      <a
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => handleNavClick("/orders")}
+                      >
+                        <div className="text-sm font-medium leading-none">All Orders</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          View complete order history
                         </p>
                       </a>
                     </NavigationMenuLink>
@@ -90,13 +104,18 @@ const Dashboard = () => {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Clients</NavigationMenuTrigger>
+                <NavigationMenuTrigger>
+                  <div className="flex items-center">
+                    <UsersIcon className="mr-2 h-4 w-4" />
+                    Clients
+                  </div>
+                </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-4 w-[400px]">
                     <NavigationMenuLink asChild>
                       <a
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        onClick={() => handleNavClick("client-list")}
+                        onClick={() => handleNavClick("/clients/list")}
                       >
                         <div className="text-sm font-medium leading-none">Client List</div>
                         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -107,7 +126,7 @@ const Dashboard = () => {
                     <NavigationMenuLink asChild>
                       <a
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        onClick={() => handleNavClick("add-client")}
+                        onClick={() => handleNavClick("/clients/add")}
                       >
                         <div className="text-sm font-medium leading-none">Add New Client</div>
                         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -119,13 +138,18 @@ const Dashboard = () => {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>Recipes</NavigationMenuTrigger>
+                <NavigationMenuTrigger>
+                  <div className="flex items-center">
+                    <BookIcon className="mr-2 h-4 w-4" />
+                    Recipes
+                  </div>
+                </NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="grid gap-3 p-4 w-[400px]">
                     <NavigationMenuLink asChild>
                       <a
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        onClick={() => handleNavClick("recipe-library")}
+                        onClick={() => handleNavClick("/recipes/library")}
                       >
                         <div className="text-sm font-medium leading-none">Recipe Library</div>
                         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -136,11 +160,22 @@ const Dashboard = () => {
                     <NavigationMenuLink asChild>
                       <a
                         className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        onClick={() => handleNavClick("add-recipe")}
+                        onClick={() => handleNavClick("/recipes/add")}
                       >
                         <div className="text-sm font-medium leading-none">Add New Recipe</div>
                         <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                           Create and save a new recipe
+                        </p>
+                      </a>
+                    </NavigationMenuLink>
+                    <NavigationMenuLink asChild>
+                      <a
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => handleNavClick("/recipes/categories")}
+                      >
+                        <div className="text-sm font-medium leading-none">Categories</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Manage recipe categories
                         </p>
                       </a>
                     </NavigationMenuLink>
@@ -151,7 +186,7 @@ const Dashboard = () => {
                 <Button 
                   variant="ghost" 
                   className="flex items-center"
-                  onClick={() => handleNavClick("settings")}
+                  onClick={() => handleNavClick("/settings")}
                 >
                   <SettingsIcon className="mr-2 h-5 w-5" />
                   Settings
@@ -161,13 +196,13 @@ const Dashboard = () => {
           </NavigationMenu>
         </div>
 
-        {/* Welcome message with user's name */}
+        {/* Welcome message with user's name and rotating message */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
             Welcome, {user?.email?.split('@')[0] || 'Baker'}!
           </h2>
           <p className="text-gray-600 mt-2">
-            Here's what's happening with your bakery orders.
+            {welcomeMessage}
           </p>
         </div>
 
@@ -199,7 +234,7 @@ const Dashboard = () => {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start p-0"
-                onClick={() => handleNavClick("orders")}
+                onClick={() => handleNavClick("/orders")}
               >
                 View all orders
               </Button>
@@ -222,7 +257,7 @@ const Dashboard = () => {
               <Button 
                 variant="ghost" 
                 className="w-full justify-start p-0"
-                onClick={() => handleNavClick("orders")}
+                onClick={() => handleNavClick("/orders")}
               >
                 View upcoming orders
               </Button>
