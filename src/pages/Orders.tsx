@@ -50,8 +50,8 @@ const CompletedOrders = () => <div className="bg-white rounded-lg shadow p-6"><h
 
 // Form validation schema
 const orderSchema = z.object({
-  clientName: z.string().min(2, "Client name is required"),
-  productName: z.string().min(2, "Product name is required"),
+  clientName: z.string().min(2, "Client name is required and must be at least 2 characters"),
+  productName: z.string().min(2, "Product name is required and must be at least 2 characters"),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   deliveryDate: z.string().min(1, "Delivery date is required"),
   deliveryTime: z.string().optional(),
@@ -78,7 +78,14 @@ const AddOrder = () => {
   });
 
   const onSubmit = async (values: OrderFormValues) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create an order",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -104,11 +111,11 @@ const AddOrder = () => {
       });
       
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating order:", error);
       toast({
         title: "Error",
-        description: "There was a problem creating your order. Please try again.",
+        description: error.message || "There was a problem creating your order. Please try again.",
         variant: "destructive",
       });
     } finally {
