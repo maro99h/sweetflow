@@ -24,10 +24,60 @@ const OrderSummary = () => {
     queryFn: async () => {
       if (!user) return { today: 0, tomorrow: 0, pending: 0, completed: 0 };
       
-      // This is a placeholder. In a real app, you would implement
-      // queries to count orders with different statuses
-      // For now, we'll return mock data
-      return { today: 3, tomorrow: 2, pending: 5, completed: 12 };
+      // Fetch today's orders count
+      const { count: todayCount, error: todayError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('delivery_date', todayStr);
+        
+      if (todayError) {
+        console.error('Error fetching today orders:', todayError);
+        throw todayError;
+      }
+      
+      // Fetch tomorrow's orders count
+      const { count: tomorrowCount, error: tomorrowError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('delivery_date', tomorrowStr);
+        
+      if (tomorrowError) {
+        console.error('Error fetching tomorrow orders:', tomorrowError);
+        throw tomorrowError;
+      }
+      
+      // Fetch pending orders count
+      const { count: pendingCount, error: pendingError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'pending');
+        
+      if (pendingError) {
+        console.error('Error fetching pending orders:', pendingError);
+        throw pendingError;
+      }
+      
+      // Fetch completed orders count
+      const { count: completedCount, error: completedError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'completed');
+        
+      if (completedError) {
+        console.error('Error fetching completed orders:', completedError);
+        throw completedError;
+      }
+      
+      return {
+        today: todayCount || 0,
+        tomorrow: tomorrowCount || 0,
+        pending: pendingCount || 0,
+        completed: completedCount || 0
+      };
     },
     enabled: !!user,
   });

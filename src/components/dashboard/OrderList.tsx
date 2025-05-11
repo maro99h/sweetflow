@@ -6,21 +6,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 
 interface OrderListProps {
   title: string;
   period: "today" | "tomorrow";
 }
 
-// Mock type for Order (replace with actual type from your database)
 interface Order {
   id: string;
   client_name: string;
   product_name: string;
   quantity: number;
   delivery_date: string;
+  delivery_time: string | null;
   status: string;
 }
 
@@ -44,28 +45,40 @@ const OrderList = ({ title, period }: OrderListProps) => {
     queryFn: async () => {
       if (!user) return [];
       
-      // This is a placeholder. In a real app, you would implement
-      // a query to fetch orders from your database
-      // For now, we'll return mock data
-      if (period === "today") {
-        return [
-          {
-            id: "1",
-            client_name: "Cafe Delight",
-            product_name: "Chocolate Cake",
-            quantity: 2,
-            delivery_date: dateStr,
-            status: "pending"
-          }
-        ];
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('delivery_date', dateStr)
+        .order('delivery_time', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
       }
-      return []; // Empty for tomorrow to show the empty state
+      
+      return data as Order[];
     },
     enabled: !!user,
   });
 
   const handleViewAll = () => {
     navigate("/orders");
+  };
+
+  const formatTime = (timeString: string | null) => {
+    if (!timeString) return '';
+    
+    try {
+      // Convert HH:MM:SS to display format
+      const [hours, minutes] = timeString.split(':');
+      const time = new Date();
+      time.setHours(parseInt(hours), parseInt(minutes), 0);
+      return format(time, 'h:mm a'); // Format as 1:30 PM
+    } catch (error) {
+      console.error('Error formatting time:', error);
+      return timeString;
+    }
   };
 
   return (
@@ -93,13 +106,31 @@ const OrderList = ({ title, period }: OrderListProps) => {
               <div 
                 key={order.id} 
                 className="border border-gray-100 rounded-md p-3 hover:bg-gray-50 transition cursor-pointer"
+                onClick={() => navigate(`/orders/${order.id}`)}
               >
                 <div className="flex justify-between">
                   <span className="font-medium">{order.client_name}</span>
-                  <span className="text-sm text-gray-500">#{order.id.substring(0, 6)}</span>
+                  <span className="text-sm text-gray-500">
+                    {order.delivery_time && (
+                      <span className="flex items-center">
+                        <Clock className="h-3 w-3 mr-1" /> 
+                        {formatTime(order.delivery_time)}
+                      </span>
+                    )}
+                  </span>
                 </div>
                 <div className="text-sm mt-1">
                   {order.quantity}x {order.product_name}
+                </div>
+                <div className="text-xs mt-1 flex justify-between">
+                  <span className={`px-2 py-0.5 rounded-full ${
+                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                    order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
+                    order.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {order.status}
+                  </span>
                 </div>
               </div>
             ))}
