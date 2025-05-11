@@ -22,18 +22,31 @@ export type OrderFormValues = {
   notes?: string;
 };
 
-// This type is used for type assertions when working with Supabase
-export type PostgrestResponse<T> = {
-  data: T;
-  error: Error | null;
-};
-
 // Database type that includes the orders table for typecasting
 export type Database = {
   public: {
     Tables: {
       orders: {
         Row: Order;
+        Insert: {
+          user_id: string;
+          client_name: string;
+          product_name: string;
+          quantity: number;
+          delivery_date: string;
+          delivery_time?: string | null;
+          status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+          notes?: string | null;
+        };
+        Update: Partial<{
+          client_name: string;
+          product_name: string;
+          quantity: number;
+          delivery_date: string;
+          delivery_time: string | null;
+          status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+          notes: string | null;
+        }>;
       };
       profiles: {
         Row: {

@@ -100,7 +100,7 @@ const AddOrder = () => {
           delivery_time: values.deliveryTime || null,
           status: 'pending',
           notes: values.notes || null
-        } as any);
+        });
         
       if (error) throw error;
       

@@ -30,7 +30,7 @@ const OrderList = ({ title, period }: OrderListProps) => {
   // Format date for display and filtering
   const dateStr = filterDate.toISOString().split('T')[0];
   
-  // Fetch orders for the specified period with proper type assertion
+  // Fetch orders for the specified period
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ['orders', user?.id, period],
     queryFn: async () => {
@@ -41,14 +41,14 @@ const OrderList = ({ title, period }: OrderListProps) => {
         .select('*')
         .eq('user_id', user.id)
         .eq('delivery_date', dateStr)
-        .order('delivery_time', { ascending: true }) as unknown as { data: Order[] | null, error: Error | null };
+        .order('delivery_time', { ascending: true });
         
       if (error) {
         console.error('Error fetching orders:', error);
         throw error;
       }
       
-      return data as Order[] || [];
+      return data || [];
     },
     enabled: !!user,
   });
