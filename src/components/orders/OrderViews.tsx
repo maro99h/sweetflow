@@ -8,6 +8,7 @@ import { Order } from "@/types/orders";
 import OrderList from "@/components/orders/OrderList";
 import OrderEditModal from "@/components/orders/OrderEditModal";
 import OrderDeleteDialog from "@/components/orders/OrderDeleteDialog";
+import { toast } from "@/hooks/use-toast";
 
 const useOrders = (status?: string) => {
   const { user } = useAuth();
@@ -59,7 +60,14 @@ const OrdersView = ({ title, status }: { title: string; status?: string }) => {
   };
 
   const handleViewDetails = (order: Order) => {
-    console.log("Navigating to order details:", order.id);
+    if (!order || !order.id) {
+      toast({
+        title: "Error",
+        description: "Cannot view order details: Invalid order data",
+        variant: "destructive",
+      });
+      return;
+    }
     navigate(`/orders/${order.id}`);
   };
   

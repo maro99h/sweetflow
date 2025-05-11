@@ -23,9 +23,7 @@ const OrdersLayout = ({ children }: OrdersLayoutProps) => {
   };
 
   const handleTabChange = (value: string) => {
-    // Ensure navigation occurs by using the navigate function
-    navigate(`/orders/${value}`);
-    console.log("Tab changed to:", value, "Navigating to:", `/orders/${value}`);
+    navigate(`/orders/${value}`, { replace: true });
   };
   
   return (

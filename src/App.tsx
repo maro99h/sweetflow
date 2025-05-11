@@ -15,7 +15,14 @@ import ClientsPage from "./pages/Clients";
 import RecipesPage from "./pages/Recipes";
 import SettingsPage from "./pages/Settings";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
