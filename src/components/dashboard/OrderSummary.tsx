@@ -24,7 +24,7 @@ const OrderSummary = () => {
     queryFn: async () => {
       if (!user) return { today: 0, tomorrow: 0, pending: 0, completed: 0 };
       
-      // Fetch today's orders count
+      // Fetch today's orders count - directly from orders table
       const { count: todayCount, error: todayError } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
@@ -36,7 +36,7 @@ const OrderSummary = () => {
         throw todayError;
       }
       
-      // Fetch tomorrow's orders count
+      // Fetch tomorrow's orders count - directly from orders table
       const { count: tomorrowCount, error: tomorrowError } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
@@ -48,7 +48,7 @@ const OrderSummary = () => {
         throw tomorrowError;
       }
       
-      // Fetch pending orders count
+      // Fetch pending orders count - directly from orders table
       const { count: pendingCount, error: pendingError } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
@@ -60,7 +60,7 @@ const OrderSummary = () => {
         throw pendingError;
       }
       
-      // Fetch completed orders count
+      // Fetch completed orders count - directly from orders table
       const { count: completedCount, error: completedError } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })

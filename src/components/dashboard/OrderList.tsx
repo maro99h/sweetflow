@@ -39,7 +39,7 @@ const OrderList = ({ title, period }: OrderListProps) => {
   // Format date for display and filtering
   const dateStr = filterDate.toISOString().split('T')[0];
   
-  // Fetch orders for the specified period
+  // Fetch orders for the specified period - directly from orders table
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ['orders', user?.id, period],
     queryFn: async () => {
