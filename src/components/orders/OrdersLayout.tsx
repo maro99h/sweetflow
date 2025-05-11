@@ -18,7 +18,14 @@ const OrdersLayout = ({ children }: OrdersLayoutProps) => {
     if (location.pathname.includes("/orders/new")) return "new";
     if (location.pathname.includes("/orders/in-progress")) return "in-progress";
     if (location.pathname.includes("/orders/completed")) return "completed";
-    return "all";
+    if (location.pathname.includes("/orders/all")) return "all";
+    return "all"; // Default to "all" if no match
+  };
+
+  const handleTabChange = (value: string) => {
+    // Ensure navigation occurs by using the navigate function
+    navigate(`/orders/${value}`);
+    console.log("Tab changed to:", value, "Navigating to:", `/orders/${value}`);
   };
   
   return (
@@ -38,9 +45,11 @@ const OrdersLayout = ({ children }: OrdersLayoutProps) => {
         </div>
         
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-          <Tabs defaultValue={getCurrentTab()} className="w-full" onValueChange={(value) => {
-            navigate(`/orders/${value}`);
-          }}>
+          <Tabs 
+            value={getCurrentTab()} 
+            onValueChange={handleTabChange} 
+            className="w-full"
+          >
             <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:grid-cols-4 gap-2">
               <TabsTrigger value="all">All Orders</TabsTrigger>
               <TabsTrigger value="new">New</TabsTrigger>

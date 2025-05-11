@@ -59,6 +59,7 @@ const OrdersView = ({ title, status }: { title: string; status?: string }) => {
   };
 
   const handleViewDetails = (order: Order) => {
+    console.log("Navigating to order details:", order.id);
     navigate(`/orders/${order.id}`);
   };
   

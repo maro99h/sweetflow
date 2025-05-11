@@ -13,9 +13,12 @@ const OrdersPage = () => {
   // Redirect to all orders if just on /orders
   useEffect(() => {
     if (location.pathname === "/orders") {
+      console.log("Redirecting from /orders to /orders/all");
       navigate("/orders/all");
     }
   }, [location.pathname, navigate]);
+
+  console.log("Current path:", location.pathname);
   
   return (
     <OrdersLayout>
