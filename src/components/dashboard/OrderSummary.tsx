@@ -18,55 +18,55 @@ const OrderSummary = () => {
   const todayStr = today.toISOString().split('T')[0];
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
   
-  // Fetch order statistics
+  // Fetch order statistics with proper type assertions
   const { data: orderStats, isLoading } = useQuery({
     queryKey: ['orderStats', user?.id],
     queryFn: async () => {
       if (!user) return { today: 0, tomorrow: 0, pending: 0, completed: 0 };
       
       try {
-        // Fetch today's orders count - directly from orders table
+        // Fetch today's orders count
         const { count: todayCount, error: todayError } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .eq('delivery_date', todayStr) as { count: number | null, error: Error | null };
+          .eq('delivery_date', todayStr) as any;
           
         if (todayError) {
           console.error('Error fetching today orders:', todayError);
           throw todayError;
         }
         
-        // Fetch tomorrow's orders count - directly from orders table
+        // Fetch tomorrow's orders count
         const { count: tomorrowCount, error: tomorrowError } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .eq('delivery_date', tomorrowStr) as { count: number | null, error: Error | null };
+          .eq('delivery_date', tomorrowStr) as any;
           
         if (tomorrowError) {
           console.error('Error fetching tomorrow orders:', tomorrowError);
           throw tomorrowError;
         }
         
-        // Fetch pending orders count - directly from orders table
+        // Fetch pending orders count
         const { count: pendingCount, error: pendingError } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .eq('status', 'pending') as { count: number | null, error: Error | null };
+          .eq('status', 'pending') as any;
           
         if (pendingError) {
           console.error('Error fetching pending orders:', pendingError);
           throw pendingError;
         }
         
-        // Fetch completed orders count - directly from orders table
+        // Fetch completed orders count
         const { count: completedCount, error: completedError } = await supabase
           .from('orders')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .eq('status', 'completed') as { count: number | null, error: Error | null };
+          .eq('status', 'completed') as any;
           
         if (completedError) {
           console.error('Error fetching completed orders:', completedError);

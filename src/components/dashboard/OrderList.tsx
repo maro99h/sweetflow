@@ -30,7 +30,7 @@ const OrderList = ({ title, period }: OrderListProps) => {
   // Format date for display and filtering
   const dateStr = filterDate.toISOString().split('T')[0];
   
-  // Fetch orders for the specified period - using type assertion for Supabase
+  // Fetch orders for the specified period with proper type assertion
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ['orders', user?.id, period],
     queryFn: async () => {
@@ -41,7 +41,7 @@ const OrderList = ({ title, period }: OrderListProps) => {
         .select('*')
         .eq('user_id', user.id)
         .eq('delivery_date', dateStr)
-        .order('delivery_time', { ascending: true }) as { data: Order[] | null, error: Error | null };
+        .order('delivery_time', { ascending: true }) as unknown as { data: Order[] | null, error: Error | null };
         
       if (error) {
         console.error('Error fetching orders:', error);
