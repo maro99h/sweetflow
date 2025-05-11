@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 
 // Array of engaging bakery/confectionery-related messages
 const welcomeMessages = [
@@ -16,8 +15,11 @@ const welcomeMessages = [
   "Making your bakery business run as smooth as fondant!"
 ];
 
-const WelcomeSection = () => {
-  const { user } = useAuth();
+interface WelcomeSectionProps {
+  userName?: string;
+}
+
+const WelcomeSection = ({ userName }: WelcomeSectionProps) => {
   const [welcomeMessage, setWelcomeMessage] = useState("");
   
   useEffect(() => {
@@ -26,10 +28,13 @@ const WelcomeSection = () => {
     setWelcomeMessage(welcomeMessages[randomIndex]);
   }, []);
 
+  // Use the user's name if available, otherwise use a default
+  const displayName = userName || 'Baker';
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 className="text-xl font-semibold text-gray-800">
-        Welcome, {user?.email?.split('@')[0] || 'Baker'}!
+        Welcome, {displayName}!
       </h2>
       <p className="text-gray-600 mt-2">
         {welcomeMessage}
