@@ -1,40 +1,164 @@
 
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import { BookIcon, SettingsIcon, UsersIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, PackageIcon, UserIcon, BookIcon, SettingsIcon } from "lucide-react";
 
 const DashboardNavigationMenu = () => {
   const navigate = useNavigate();
 
-  const menuItems = [
-    { icon: <CalendarIcon className="h-6 w-6" />, label: "Orders", path: "/orders/all" },
-    { icon: <UserIcon className="h-6 w-6" />, label: "Clients", path: "/clients" },
-    { icon: <BookIcon className="h-6 w-6" />, label: "Recipes", path: "/recipes" },
-    { icon: <SettingsIcon className="h-6 w-6" />, label: "Settings", path: "/settings" },
-  ];
-
+  // Handle navigation
   const handleNavClick = (path: string) => {
-    console.log("Navigation clicked to:", path);
     navigate(path);
   };
 
   return (
-    <Card className="mb-6 border-none shadow-sm">
-      <CardContent className="p-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center justify-center p-4 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors border border-gray-100"
-              onClick={() => handleNavClick(item.path)}
+    <div className="mb-8">
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Orders</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="grid gap-3 p-4 w-[400px]">
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/orders/new")}
+                  >
+                    <div className="text-sm font-medium leading-none">New Orders</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View and manage new incoming orders
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/orders/in-progress")}
+                  >
+                    <div className="text-sm font-medium leading-none">In Progress</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View orders currently being prepared
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/orders/completed")}
+                  >
+                    <div className="text-sm font-medium leading-none">Completed</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View all fulfilled and delivered orders
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/orders")}
+                  >
+                    <div className="text-sm font-medium leading-none">All Orders</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View complete order history
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>
+              <div className="flex items-center">
+                <UsersIcon className="mr-2 h-4 w-4" />
+                Clients
+              </div>
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="grid gap-3 p-4 w-[400px]">
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/clients/list")}
+                  >
+                    <div className="text-sm font-medium leading-none">Client List</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      View and manage your clients
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/clients/add")}
+                  >
+                    <div className="text-sm font-medium leading-none">Add New Client</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Add a new client to your database
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>
+              <div className="flex items-center">
+                <BookIcon className="mr-2 h-4 w-4" />
+                Recipes
+              </div>
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <div className="grid gap-3 p-4 w-[400px]">
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/recipes/library")}
+                  >
+                    <div className="text-sm font-medium leading-none">Recipe Library</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Browse and search your recipes
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/recipes/add")}
+                  >
+                    <div className="text-sm font-medium leading-none">Add New Recipe</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Create and save a new recipe
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+                <NavigationMenuLink asChild>
+                  <a
+                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    onClick={() => handleNavClick("/recipes/categories")}
+                  >
+                    <div className="text-sm font-medium leading-none">Categories</div>
+                    <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                      Manage recipe categories
+                    </p>
+                  </a>
+                </NavigationMenuLink>
+              </div>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Button 
+              variant="ghost" 
+              className="flex items-center"
+              onClick={() => handleNavClick("/settings")}
             >
-              <div className="text-primary mb-2">{item.icon}</div>
-              <span className="text-sm font-medium">{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+              <SettingsIcon className="mr-2 h-5 w-5" />
+              Settings
+            </Button>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
   );
 };
 
