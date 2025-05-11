@@ -1,4 +1,3 @@
-
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
 import { BookIcon, SettingsIcon, UsersIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -113,7 +112,7 @@ const DashboardNavigationMenu = () => {
                   >
                     <div className="text-sm font-medium leading-none">Add New Client</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      View and manage your clients
+                      Add a new client to your database
                     </p>
                   </a>
                 </NavigationMenuLink>
