@@ -72,6 +72,23 @@ const OrderList = ({ title, period }: OrderListProps) => {
     }
   };
 
+  const getFirstItemInfo = (order: Order) => {
+    if (!order.items || !Array.isArray(order.items) || order.items.length === 0) {
+      return { name: "No items", quantity: 0 };
+    }
+    
+    const firstItem = order.items[0];
+    const quantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+    const itemCount = order.items.length;
+    
+    let name = firstItem.dessert_name;
+    if (itemCount > 1) {
+      name += ` + ${itemCount - 1} more`;
+    }
+    
+    return { name, quantity };
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -93,38 +110,42 @@ const OrderList = ({ title, period }: OrderListProps) => {
           <div className="text-sm text-red-500">Error loading orders</div>
         ) : orders && orders.length > 0 ? (
           <div className="space-y-3">
-            {orders.map((order) => (
-              <div 
-                key={order.id} 
-                className="border border-gray-100 rounded-md p-3 hover:bg-gray-50 transition cursor-pointer"
-                onClick={() => navigate(`/orders/${order.id}`)}
-              >
-                <div className="flex justify-between">
-                  <span className="font-medium">{order.client_name}</span>
-                  <span className="text-sm text-gray-500">
-                    {order.delivery_time && (
-                      <span className="flex items-center">
-                        <Clock className="h-3 w-3 mr-1" /> 
-                        {formatTime(order.delivery_time)}
-                      </span>
-                    )}
-                  </span>
+            {orders.map((order) => {
+              const { name, quantity } = getFirstItemInfo(order);
+              return (
+                <div 
+                  key={order.id} 
+                  className="border border-gray-100 rounded-md p-3 hover:bg-gray-50 transition cursor-pointer"
+                  onClick={() => navigate(`/orders/${order.id}`)}
+                >
+                  <div className="flex justify-between">
+                    <span className="font-medium">{order.client_name}</span>
+                    <span className="text-sm text-gray-500">
+                      {order.delivery_time && (
+                        <span className="flex items-center">
+                          <Clock className="h-3 w-3 mr-1" /> 
+                          {formatTime(order.delivery_time)}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="text-sm mt-1">
+                    {quantity}x {name}
+                  </div>
+                  <div className="text-xs mt-1 flex justify-between">
+                    <span className={`px-2 py-0.5 rounded-full ${
+                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                      order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
+                      order.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {order.status}
+                    </span>
+                    <span className="font-medium">{order.total_price.toFixed(2)} ILS</span>
+                  </div>
                 </div>
-                <div className="text-sm mt-1">
-                  {order.quantity}x {order.product_name}
-                </div>
-                <div className="text-xs mt-1 flex justify-between">
-                  <span className={`px-2 py-0.5 rounded-full ${
-                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                    order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 
-                    order.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {order.status}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-6">
