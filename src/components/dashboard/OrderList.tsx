@@ -9,20 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { Order } from "@/types/orders";
 
 interface OrderListProps {
   title: string;
   period: "today" | "tomorrow";
-}
-
-interface Order {
-  id: string;
-  client_name: string;
-  product_name: string;
-  quantity: number;
-  delivery_date: string;
-  delivery_time: string | null;
-  status: string;
 }
 
 const OrderList = ({ title, period }: OrderListProps) => {
@@ -39,7 +30,7 @@ const OrderList = ({ title, period }: OrderListProps) => {
   // Format date for display and filtering
   const dateStr = filterDate.toISOString().split('T')[0];
   
-  // Fetch orders for the specified period - directly from orders table
+  // Fetch orders for the specified period - using type assertion for Supabase
   const { data: orders, isLoading, error } = useQuery({
     queryKey: ['orders', user?.id, period],
     queryFn: async () => {
@@ -50,14 +41,14 @@ const OrderList = ({ title, period }: OrderListProps) => {
         .select('*')
         .eq('user_id', user.id)
         .eq('delivery_date', dateStr)
-        .order('delivery_time', { ascending: true });
+        .order('delivery_time', { ascending: true }) as { data: Order[] | null, error: Error | null };
         
       if (error) {
         console.error('Error fetching orders:', error);
         throw error;
       }
       
-      return data as Order[];
+      return data as Order[] || [];
     },
     enabled: !!user,
   });

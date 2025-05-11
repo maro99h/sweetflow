@@ -24,60 +24,65 @@ const OrderSummary = () => {
     queryFn: async () => {
       if (!user) return { today: 0, tomorrow: 0, pending: 0, completed: 0 };
       
-      // Fetch today's orders count - directly from orders table
-      const { count: todayCount, error: todayError } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('delivery_date', todayStr);
+      try {
+        // Fetch today's orders count - directly from orders table
+        const { count: todayCount, error: todayError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('delivery_date', todayStr) as { count: number | null, error: Error | null };
+          
+        if (todayError) {
+          console.error('Error fetching today orders:', todayError);
+          throw todayError;
+        }
         
-      if (todayError) {
-        console.error('Error fetching today orders:', todayError);
-        throw todayError;
-      }
-      
-      // Fetch tomorrow's orders count - directly from orders table
-      const { count: tomorrowCount, error: tomorrowError } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('delivery_date', tomorrowStr);
+        // Fetch tomorrow's orders count - directly from orders table
+        const { count: tomorrowCount, error: tomorrowError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('delivery_date', tomorrowStr) as { count: number | null, error: Error | null };
+          
+        if (tomorrowError) {
+          console.error('Error fetching tomorrow orders:', tomorrowError);
+          throw tomorrowError;
+        }
         
-      if (tomorrowError) {
-        console.error('Error fetching tomorrow orders:', tomorrowError);
-        throw tomorrowError;
-      }
-      
-      // Fetch pending orders count - directly from orders table
-      const { count: pendingCount, error: pendingError } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('status', 'pending');
+        // Fetch pending orders count - directly from orders table
+        const { count: pendingCount, error: pendingError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'pending') as { count: number | null, error: Error | null };
+          
+        if (pendingError) {
+          console.error('Error fetching pending orders:', pendingError);
+          throw pendingError;
+        }
         
-      if (pendingError) {
-        console.error('Error fetching pending orders:', pendingError);
-        throw pendingError;
-      }
-      
-      // Fetch completed orders count - directly from orders table
-      const { count: completedCount, error: completedError } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('status', 'completed');
+        // Fetch completed orders count - directly from orders table
+        const { count: completedCount, error: completedError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'completed') as { count: number | null, error: Error | null };
+          
+        if (completedError) {
+          console.error('Error fetching completed orders:', completedError);
+          throw completedError;
+        }
         
-      if (completedError) {
-        console.error('Error fetching completed orders:', completedError);
-        throw completedError;
+        return {
+          today: todayCount || 0,
+          tomorrow: tomorrowCount || 0,
+          pending: pendingCount || 0,
+          completed: completedCount || 0
+        };
+      } catch (error) {
+        console.error('Error fetching order stats:', error);
+        return { today: 0, tomorrow: 0, pending: 0, completed: 0 };
       }
-      
-      return {
-        today: todayCount || 0,
-        tomorrow: tomorrowCount || 0,
-        pending: pendingCount || 0,
-        completed: completedCount || 0
-      };
     },
     enabled: !!user,
   });

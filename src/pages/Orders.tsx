@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,6 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { OrderFormValues } from "@/types/orders";
 
 const OrdersPage = () => {
   const { user } = useAuth();
@@ -57,8 +57,6 @@ const orderSchema = z.object({
   deliveryTime: z.string().optional(),
   notes: z.string().optional()
 });
-
-type OrderFormValues = z.infer<typeof orderSchema>;
 
 const AddOrder = () => {
   const { user } = useAuth();
