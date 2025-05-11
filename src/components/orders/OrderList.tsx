@@ -100,7 +100,10 @@ const OrderList = ({ orders, isLoading, error, onEdit, onDelete, onViewDetails }
         <Card 
           key={order.id} 
           className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => onViewDetails(order)}
+          onClick={() => {
+            console.log("View details clicked for order:", order.id);
+            onViewDetails(order);
+          }}
         >
           <div className="flex flex-col space-y-2">
             <div className="flex justify-between items-start">
@@ -130,6 +133,7 @@ const OrderList = ({ orders, isLoading, error, onEdit, onDelete, onViewDetails }
                   className="flex items-center"
                   onClick={(e) => {
                     e.stopPropagation();
+                    console.log("Edit clicked for order:", order.id);
                     onEdit(order);
                   }}
                 >
@@ -141,6 +145,7 @@ const OrderList = ({ orders, isLoading, error, onEdit, onDelete, onViewDetails }
                   className="flex items-center text-red-600 hover:text-red-700 hover:bg-red-50"
                   onClick={(e) => {
                     e.stopPropagation();
+                    console.log("Delete clicked for order:", order.id);
                     onDelete(order);
                   }}
                 >
