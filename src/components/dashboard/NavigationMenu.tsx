@@ -7,8 +7,9 @@ import { useNavigate } from "react-router-dom";
 const DashboardNavigationMenu = () => {
   const navigate = useNavigate();
 
-  // Handle navigation
+  // Handle navigation with React Router's navigate function
   const handleNavClick = (path: string) => {
+    // Prevent default behavior and use React Router navigation
     navigate(path);
   };
 
@@ -23,7 +24,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/orders/new")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/orders/new");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">New Orders</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -34,7 +38,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/orders/in-progress")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/orders/in-progress");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">In Progress</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -45,7 +52,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/orders/completed")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/orders/completed");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">Completed</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -56,7 +66,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/orders")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/orders");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">All Orders</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -79,7 +92,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/clients/list")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/clients/list");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">Client List</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -90,11 +106,14 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/clients/add")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/clients/add");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">Add New Client</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                      Add a new client to your database
+                      View and manage your clients
                     </p>
                   </a>
                 </NavigationMenuLink>
@@ -113,7 +132,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/recipes/library")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/recipes/library");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">Recipe Library</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -124,7 +146,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/recipes/add")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/recipes/add");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">Add New Recipe</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -135,7 +160,10 @@ const DashboardNavigationMenu = () => {
                 <NavigationMenuLink asChild>
                   <a
                     className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    onClick={() => handleNavClick("/recipes/categories")}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick("/recipes/categories");
+                    }}
                   >
                     <div className="text-sm font-medium leading-none">Categories</div>
                     <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
@@ -150,7 +178,10 @@ const DashboardNavigationMenu = () => {
             <Button 
               variant="ghost" 
               className="flex items-center"
-              onClick={() => handleNavClick("/settings")}
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick("/settings");
+              }}
             >
               <SettingsIcon className="mr-2 h-5 w-5" />
               Settings

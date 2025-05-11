@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,15 @@ const Header = ({ showBackButton = false }: HeaderProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   
-  const handleNavigateToSettings = () => {
+  const handleNavigateToSettings = (e: React.MouseEvent) => {
+    e.preventDefault();
     console.log("Navigating to settings page");
     navigate("/settings");
+  };
+  
+  const handleNavigateToDashboard = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigate("/dashboard");
   };
   
   return (
@@ -29,7 +34,13 @@ const Header = ({ showBackButton = false }: HeaderProps) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         {showBackButton ? (
           <div className="flex-1">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+            <Button 
+              variant="ghost" 
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/dashboard");
+              }}
+            >
               Back to Dashboard
             </Button>
           </div>
@@ -39,7 +50,7 @@ const Header = ({ showBackButton = false }: HeaderProps) => {
         
         <h1 
           className="text-2xl font-bold text-center text-gray-800 flex-1 cursor-pointer" 
-          onClick={() => navigate("/dashboard")}
+          onClick={handleNavigateToDashboard}
         >
           SweetFlow
         </h1>
