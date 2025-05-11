@@ -19,6 +19,7 @@ export type OrderFormValues = {
   quantity: number;
   deliveryDate: string;
   deliveryTime?: string;
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   notes?: string;
 };
 
