@@ -9,7 +9,10 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signUp: (email: string, password: string) => Promise<{
+  signUp: (email: string, password: string, userData?: {
+    full_name?: string;
+    business_name?: string;
+  }) => Promise<{
     error: any | null;
     data: any | null;
   }>;
@@ -19,6 +22,10 @@ type AuthContextType = {
     requiresEmailConfirmation?: boolean;
   }>;
   signOut: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<{
+    error: any | null;
+    data: any | null;
+  }>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,8 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error("Error getting session:", error);
         toast({
-          title: "תקלה באימות",
-          description: "אירעה שגיאה בטעינת הפרופיל שלך.",
+          title: "Authentication Error",
+          description: "There was an error loading your profile.",
           variant: "destructive",
         });
       } finally {
@@ -82,7 +89,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [navigate]);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, userData?: {
+    full_name?: string;
+    business_name?: string;
+  }) => {
     setIsLoading(true);
     console.log("Attempting signup with:", email);
     try {
@@ -90,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
         options: {
+          data: userData,
           emailRedirectTo: window.location.origin + "/auth?confirmation=true",
         }
       });
@@ -132,19 +143,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    setIsLoading(true);
+    try {
+      const response = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/auth?reset=true",
+      });
+      return response;
+    } catch (error) {
+      console.error("Forgot password error caught:", error);
+      return { data: null, error };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signOut = async () => {
     setIsLoading(true);
     try {
       await supabase.auth.signOut();
       toast({
-        title: "התנתקת בהצלחה",
-        description: "התנתקת מהחשבון שלך.",
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
       });
     } catch (error) {
       console.error("Error signing out:", error);
       toast({
-        title: "תקלה בהתנתקות",
-        description: "אירעה שגיאה בעת ההתנתקות.",
+        title: "Error signing out",
+        description: "There was an error signing out.",
         variant: "destructive",
       });
     } finally {
@@ -159,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
+    forgotPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

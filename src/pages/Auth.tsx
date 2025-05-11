@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 import {
   Form,
@@ -25,31 +24,31 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 // Enhanced email regex for better validation
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// Enhanced password regex for security requirements - only English letters and numbers
+// Enhanced password regex for security requirements
 const passwordRegex = /^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9!@#$%^&*]{8,}$/;
 
 const loginSchema = z.object({
   email: z.string()
-    .email("נא להזין כתובת אימייל חוקית")
-    .regex(emailRegex, "נא להזין כתובת אימייל חוקית"),
-  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
+    .email("Please enter a valid email address")
+    .regex(emailRegex, "Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, "נא להזין שם מלא"),
-  phoneNumber: z.string().min(9, "נא להזין מספר טלפון תקין"),
+  fullName: z.string().min(2, "Please enter your full name"),
+  businessName: z.string().min(2, "Please enter your business name"),
   email: z.string()
-    .email("נא להזין כתובת אימייל חוקית")
-    .regex(emailRegex, "נא להזין כתובת אימייל חוקית"),
+    .email("Please enter a valid email address")
+    .regex(emailRegex, "Please enter a valid email address"),
   password: z.string()
-    .min(8, "סיסמה חייבת להכיל לפחות 8 תווים")
+    .min(8, "Password must be at least 8 characters")
     .regex(
       passwordRegex,
-      "הסיסמה חייבת לכלול לפחות מספר אחד ואותיות באנגלית"
+      "Password must include at least one number and one letter"
     ),
-  confirmPassword: z.string().min(8, "סיסמה חייבת להכיל לפחות 8 תווים"),
+  confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "הסיסמאות אינן תואמות",
+  message: "Passwords do not match",
   path: ["confirmPassword"],
 });
 
@@ -61,7 +60,8 @@ const Auth = () => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isEmailConfirmationPending, setIsEmailConfirmationPending] = useState(false);
-  const { signIn, signUp, isLoading, user } = useAuth();
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const { signIn, signUp, forgotPassword, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,9 +69,15 @@ const Auth = () => {
     // Check for email confirmation in URL
     const queryParams = new URLSearchParams(location.search);
     const hasConfirmation = queryParams.get("confirmation") === "true";
+    const hasReset = queryParams.get("reset") === "true";
     
     if (hasConfirmation) {
-      setSuccessMsg("האימייל שלך אומת בהצלחה! כעת תוכל להתחבר.");
+      setSuccessMsg("Your email has been verified! You can now log in.");
+      setMode("login");
+    }
+    
+    if (hasReset) {
+      setSuccessMsg("You can now reset your password.");
       setMode("login");
     }
     
@@ -94,7 +100,7 @@ const Auth = () => {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: "",
-      phoneNumber: "",
+      businessName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -102,11 +108,23 @@ const Auth = () => {
     mode: "onChange", // Enable real-time validation
   });
 
+  const forgotPasswordForm = useForm({
+    resolver: zodResolver(
+      z.object({
+        email: z.string().email("Please enter a valid email address"),
+      })
+    ),
+    defaultValues: {
+      email: "",
+    },
+  });
+
   // Reset forms and errors when switching modes
   useEffect(() => {
     setServerError(null);
     setSuccessMsg(null);
     setIsEmailConfirmationPending(false);
+    setIsForgotPassword(false);
     
     if (mode === "login") {
       loginForm.reset();
@@ -123,64 +141,56 @@ const Auth = () => {
       if (error) {
         console.error("Login error:", error);
         if (error.message.includes("Invalid login")) {
-          setServerError("שם משתמש או סיסמה שגויים. אנא נסה שוב.");
+          setServerError("Email or password is incorrect. Please try again.");
         } else if (error.message.includes("Email not confirmed") || requiresEmailConfirmation) {
-          setServerError("נא לאמת את כתובת האימייל לפני הכניסה.");
+          setServerError("Please verify your email before logging in.");
           setIsEmailConfirmationPending(true);
         } else {
-          setServerError(error.message || "אירעה שגיאה במהלך הכניסה.");
+          setServerError(error.message || "An error occurred during login.");
         }
         return;
       }
       
       if (authData?.user) {
         toast({
-          title: "ברוכים הבאים!",
-          description: "נכנסת בהצלחה למערכת.",
+          title: "Welcome back!",
+          description: "You've successfully logged in.",
         });
         navigate("/dashboard");
       }
     } catch (error: any) {
       console.error("Unexpected login error:", error);
-      setServerError(error.message || "אירעה שגיאה בלתי צפויה.");
+      setServerError(error.message || "An unexpected error occurred.");
     }
   };
 
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setServerError(null);
     try {
-      const { error, data: authData } = await signUp(data.email, data.password);
+      const { error, data: authData } = await signUp(
+        data.email, 
+        data.password,
+        {
+          full_name: data.fullName,
+          business_name: data.businessName,
+        }
+      );
       
       if (error) {
         console.error("Signup error:", error);
         if (error.message.includes("already registered")) {
-          setServerError("כתובת האימייל כבר רשומה במערכת. נסה להתחבר במקום.");
+          setServerError("Email is already registered. Try logging in instead.");
         } else {
-          setServerError(error.message || "אירעה שגיאה במהלך ההרשמה.");
+          setServerError(error.message || "An error occurred during registration.");
         }
         return;
       }
       
-      // If registration is successful, save user metadata to Supabase
-      if (authData?.user) {
-        // Update user metadata with fullName and phoneNumber
-        const { error: metadataError } = await supabase.auth.updateUser({
-          data: {
-            full_name: data.fullName,
-            phone_number: data.phoneNumber,
-          }
-        });
-
-        if (metadataError) {
-          console.error("Error updating user metadata:", metadataError);
-        }
-      }
-      
-      setSuccessMsg("ההרשמה הצליחה! בדוק את האימייל שלך לאימות החשבון.");
+      setSuccessMsg("Registration successful! Please check your email for verification.");
       setIsEmailConfirmationPending(true);
       toast({
-        title: "ההרשמה הצליחה!",
-        description: "אנא בדוק את האימייל שלך לאימות החשבון.",
+        title: "Registration successful!",
+        description: "Please check your email to verify your account.",
       });
       
       // Switch to login mode after successful registration
@@ -189,7 +199,30 @@ const Auth = () => {
       }, 3000);
     } catch (error: any) {
       console.error("Unexpected signup error:", error);
-      setServerError(error.message || "אירעה שגיאה בלתי צפויה.");
+      setServerError(error.message || "An unexpected error occurred.");
+    }
+  };
+
+  const onForgotPasswordSubmit = async (data: { email: string }) => {
+    setServerError(null);
+    try {
+      const { error } = await forgotPassword(data.email);
+      
+      if (error) {
+        setServerError(error.message || "An error occurred. Please try again.");
+        return;
+      }
+      
+      setSuccessMsg("Password reset instructions have been sent to your email.");
+      setIsForgotPassword(false);
+      
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for instructions to reset your password.",
+      });
+    } catch (error: any) {
+      console.error("Forgot password error:", error);
+      setServerError(error.message || "An unexpected error occurred.");
     }
   };
 
@@ -197,7 +230,11 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#FFE8D6]">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-center text-[#A47149] mb-6">
-          {mode === "login" ? "כניסה למערכת" : "יצירת חשבון"}
+          {isForgotPassword 
+            ? "Reset Password" 
+            : mode === "login" 
+              ? "Sign In" 
+              : "Create Account"}
         </h1>
         
         {serverError && (
@@ -218,12 +255,57 @@ const Auth = () => {
           <Alert className="mb-6 bg-[#f0f9ff] border-blue-200 text-blue-800">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              שלחנו לך אימייל לאימות חשבונך. אנא בדוק את תיבת הדואר שלך (כולל תיקיית הספאם) ולחץ על הקישור לאימות.
+              We've sent you an email to verify your account. Please check your inbox (including spam folder) and click on the verification link.
             </AlertDescription>
           </Alert>
         )}
         
-        {mode === "login" ? (
+        {isForgotPassword ? (
+          <>
+            <Form {...forgotPasswordForm}>
+              <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+                <FormField
+                  control={forgotPasswordForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          dir="ltr"
+                          placeholder="you@example.com"
+                          autoComplete="email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-[#A47149] hover:bg-[#8B5E3C]"
+                  disabled={isLoading || forgotPasswordForm.formState.isSubmitting}
+                >
+                  {(isLoading || forgotPasswordForm.formState.isSubmitting) ? 
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : 
+                    "Send Reset Instructions"}
+                </Button>
+                
+                <div className="text-center mt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsForgotPassword(false)} 
+                    className="text-[#A47149] font-medium hover:underline"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </form>
+            </Form>
+          </>
+        ) : mode === "login" ? (
           <>
             <Form {...loginForm}>
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
@@ -232,7 +314,7 @@ const Auth = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>אימייל</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
                           dir="ltr"
@@ -250,11 +332,11 @@ const Auth = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>סיסמה</FormLabel>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="********"
                           autoComplete="current-password"
                           {...field}
                         />
@@ -264,26 +346,36 @@ const Auth = () => {
                   )}
                 />
                 
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-sm text-[#A47149] hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                
                 <Button 
                   type="submit" 
                   className="w-full bg-[#A47149] hover:bg-[#8B5E3C]"
                   disabled={isLoading || loginForm.formState.isSubmitting}
                 >
                   {(isLoading || loginForm.formState.isSubmitting) ? 
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> מתחבר...</> : 
-                    "כניסה"}
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</> : 
+                    "Sign In"}
                 </Button>
               </form>
             </Form>
             
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
-                אין לך חשבון?{" "}
+                Don't have an account?{" "}
                 <button 
                   onClick={() => setMode("register")} 
                   className="text-[#A47149] font-medium hover:underline"
                 >
-                  הרשמה
+                  Create Account
                 </button>
               </p>
             </div>
@@ -297,17 +389,12 @@ const Auth = () => {
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>שם מלא</FormLabel>
+                      <FormLabel>Full Name</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="ישראל ישראלי"
+                          placeholder="John Smith"
                           autoComplete="name"
                           {...field}
-                          onChange={(e) => {
-                            console.log("fullName changed:", e.target.value);
-                            field.onChange(e);
-                          }}
-                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -316,22 +403,15 @@ const Auth = () => {
                 />
                 <FormField
                   control={registerForm.control}
-                  name="phoneNumber"
+                  name="businessName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>מספר טלפון</FormLabel>
+                      <FormLabel>Business Name</FormLabel>
                       <FormControl>
                         <Input
-                          dir="ltr"
-                          placeholder="050-0000000"
-                          type="tel"
-                          autoComplete="tel"
+                          placeholder="Your Business"
+                          autoComplete="organization"
                           {...field}
-                          onChange={(e) => {
-                            console.log("phoneNumber changed:", e.target.value);
-                            field.onChange(e);
-                          }}
-                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -343,14 +423,13 @@ const Auth = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>אימייל</FormLabel>
+                      <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input
                           dir="ltr"
                           placeholder="you@example.com"
                           autoComplete="email"
                           {...field}
-                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -362,20 +441,19 @@ const Auth = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>סיסמה</FormLabel>
+                      <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="********"
                           autoComplete="new-password"
                           {...field}
-                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormDescription className="text-xs text-gray-500">
-                        הסיסמה חייבת להכיל לפחות 8 תווים, אותיות באנגלית ומספרים.
+                        Password must be at least 8 characters and include both letters and numbers.
                       </FormDescription>
-                      <FormMessage className="text-right" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -384,17 +462,16 @@ const Auth = () => {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>אימות סיסמה</FormLabel>
+                      <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder="********"
                           autoComplete="new-password"
                           {...field}
-                          value={field.value || ""}
                         />
                       </FormControl>
-                      <FormMessage className="text-right" />
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -405,20 +482,20 @@ const Auth = () => {
                   disabled={isLoading || registerForm.formState.isSubmitting}
                 >
                   {(isLoading || registerForm.formState.isSubmitting) ? 
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> יוצר חשבון...</> : 
-                    "יצירת חשבון"}
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : 
+                    "Create Account"}
                 </Button>
               </form>
             </Form>
             
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">
-                יש לך כבר חשבון?{" "}
+                Already have an account?{" "}
                 <button 
                   onClick={() => setMode("login")} 
                   className="text-[#A47149] font-medium hover:underline"
                 >
-                  כניסה
+                  Sign In
                 </button>
               </p>
             </div>

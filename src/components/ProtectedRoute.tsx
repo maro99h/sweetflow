@@ -17,8 +17,8 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     if (!isLoading && !user) {
       toast({
-        title: "התחברות נדרשת",
-        description: "עליך להתחבר כדי לצפות בדף זה",
+        title: "Authentication Required",
+        description: "You must be logged in to view this page",
         variant: "destructive",
       });
     }
@@ -29,7 +29,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       <div className="flex items-center justify-center min-h-screen bg-[#FFE8D6]">
         <div className="text-center">
           <div className="animate-spin h-12 w-12 border-4 border-[#A47149] border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4 text-[#A47149] text-lg font-medium">טוען...</p>
+          <p className="mt-4 text-[#A47149] text-lg font-medium">Loading...</p>
         </div>
       </div>
     );
