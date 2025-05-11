@@ -18,6 +18,12 @@ const OrderFormModal = ({ open, onOpenChange }: OrderFormModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
+  const calculateTotalPrice = (items: OrderFormValues['items']) => {
+    return items.reduce((sum, item) => {
+      return sum + (item.quantity * item.unit_price);
+    }, 0);
+  };
+
   const handleSubmit = async (values: OrderFormValues) => {
     if (!user) {
       toast({
@@ -31,13 +37,16 @@ const OrderFormModal = ({ open, onOpenChange }: OrderFormModalProps) => {
     setIsSubmitting(true);
     
     try {
+      // Calculate the total price from the items array
+      const totalPrice = calculateTotalPrice(values.items);
+      
       const { error } = await supabase
         .from('orders')
         .insert({
           user_id: user.id,
           client_name: values.clientName,
-          product_name: values.productName,
-          quantity: values.quantity,
+          items: values.items,
+          total_price: totalPrice,
           delivery_date: values.deliveryDate,
           delivery_time: values.deliveryTime || null,
           status: values.status || 'pending',
@@ -60,8 +69,8 @@ const OrderFormModal = ({ open, onOpenChange }: OrderFormModalProps) => {
     } catch (error: any) {
       console.error("Error creating order:", error);
       toast({
-        title: "Error",
-        description: error.message || "There was a problem creating your order. Please try again.",
+        title: "Error saving order",
+        description: "Please try again. " + (error.message || ""),
         variant: "destructive",
       });
     } finally {
@@ -71,7 +80,7 @@ const OrderFormModal = ({ open, onOpenChange }: OrderFormModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] p-6">
+      <DialogContent className="sm:max-w-[650px] p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-semibold">New Order</DialogTitle>
           <DialogDescription>
