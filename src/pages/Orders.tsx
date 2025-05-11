@@ -15,12 +15,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { OrderFormValues } from "@/types/orders";
+import { PlusIcon, TrashIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const OrdersPage = () => {
   const { user } = useAuth();
@@ -49,13 +51,20 @@ const NewOrders = () => <div className="bg-white rounded-lg shadow p-6"><h1 clas
 const InProgressOrders = () => <div className="bg-white rounded-lg shadow p-6"><h1 className="text-2xl font-bold mb-6">In Progress Orders</h1><p>In progress orders view coming soon</p></div>;
 const CompletedOrders = () => <div className="bg-white rounded-lg shadow p-6"><h1 className="text-2xl font-bold mb-6">Completed Orders</h1><p>Completed orders view coming soon</p></div>;
 
+// Form validation schema for a single dessert item
+const orderItemSchema = z.object({
+  dessert_name: z.string().min(2, "Dessert name is required and must be at least 2 characters"),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  unit_price: z.coerce.number().min(1, "Unit price must be at least 1"),
+});
+
 // Form validation schema
 const orderSchema = z.object({
   clientName: z.string().min(2, "Client name is required and must be at least 2 characters"),
-  productName: z.string().min(2, "Product name is required and must be at least 2 characters"),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  items: z.array(orderItemSchema).min(1, "At least one dessert item is required"),
   deliveryDate: z.string().min(1, "Delivery date is required"),
   deliveryTime: z.string().optional(),
+  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).default('pending'),
   notes: z.string().optional()
 });
 
@@ -68,13 +77,26 @@ const AddOrder = () => {
     resolver: zodResolver(orderSchema),
     defaultValues: {
       clientName: "",
-      productName: "",
-      quantity: 1,
+      items: [{ dessert_name: "", quantity: 1, unit_price: 0 }],
       deliveryDate: new Date().toISOString().split('T')[0],
       deliveryTime: "",
+      status: "pending",
       notes: ""
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  // Calculate total price
+  const calculateTotalPrice = () => {
+    const items = form.getValues("items");
+    return items.reduce((sum, item) => {
+      return sum + (item.quantity * item.unit_price);
+    }, 0);
+  };
 
   const onSubmit = async (values: OrderFormValues) => {
     if (!user) {
@@ -89,16 +111,19 @@ const AddOrder = () => {
     setIsSubmitting(true);
     
     try {
+      // Calculate the total price from the items array
+      const totalPrice = calculateTotalPrice();
+      
       const { error } = await supabase
         .from('orders')
         .insert({
           user_id: user.id,
           client_name: values.clientName,
-          product_name: values.productName,
-          quantity: values.quantity,
+          items: values.items,
+          total_price: totalPrice,
           delivery_date: values.deliveryDate,
           delivery_time: values.deliveryTime || null,
-          status: 'pending',
+          status: values.status || 'pending',
           notes: values.notes || null
         });
         
@@ -145,38 +170,98 @@ const AddOrder = () => {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="productName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Product Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter product name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Quantity</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    min="1"
-                    placeholder="Enter quantity" 
-                    {...field} 
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-medium">Dessert Items</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => append({ dessert_name: "", quantity: 1, unit_price: 0 })}
+                className="flex items-center gap-1"
+              >
+                <PlusIcon className="h-4 w-4" /> Add Item
+              </Button>
+            </div>
+
+            {fields.map((field, index) => (
+              <div key={field.id} className="border border-gray-200 rounded-md p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.dessert_name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dessert Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter dessert name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.quantity`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quantity</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1"
+                            placeholder="Enter quantity" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.unit_price`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Unit Price (ILS)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1"
+                            step="0.01"
+                            placeholder="Enter unit price" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                {fields.length > 1 && (
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => remove(index)}
+                      className="text-red-500 hover:text-red-700 flex items-center gap-1"
+                    >
+                      <TrashIcon className="h-4 w-4" /> Remove
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            <div className="flex justify-between items-center bg-muted p-3 rounded-md mt-4">
+              <span className="font-semibold">Total Price:</span>
+              <span className="font-bold text-lg">{calculateTotalPrice().toFixed(2)} ILS</span>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
@@ -214,6 +299,33 @@ const AddOrder = () => {
               )}
             />
           </div>
+          
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           
           <FormField
             control={form.control}
