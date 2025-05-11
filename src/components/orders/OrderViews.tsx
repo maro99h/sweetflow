@@ -35,6 +35,7 @@ const useOrders = (status?: string) => {
         throw error;
       }
       
+      console.log(`Fetched ${data?.length || 0} orders with status: ${status || 'all'}`);
       return data || [];
     },
     enabled: !!user,
@@ -49,12 +50,16 @@ const OrdersView = ({ title, status }: { title: string; status?: string }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
+  console.log(`Rendering ${title} with ${orders?.length || 0} orders`);
+  
   const handleEdit = (order: Order) => {
+    console.log("Edit order:", order.id);
     setSelectedOrder(order);
     setEditModalOpen(true);
   };
   
   const handleDelete = (order: Order) => {
+    console.log("Delete order:", order.id);
     setSelectedOrder(order);
     setDeleteDialogOpen(true);
   };
@@ -68,6 +73,7 @@ const OrdersView = ({ title, status }: { title: string; status?: string }) => {
       });
       return;
     }
+    console.log("Navigating to order details:", order.id);
     navigate(`/orders/${order.id}`);
   };
   

@@ -23,6 +23,7 @@ const OrdersLayout = ({ children }: OrdersLayoutProps) => {
   };
 
   const handleTabChange = (value: string) => {
+    console.log("Tab change requested to:", value);
     navigate(`/orders/${value}`, { replace: true });
   };
   
@@ -34,7 +35,10 @@ const OrdersLayout = ({ children }: OrdersLayoutProps) => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Orders</h1>
           <Button 
-            onClick={() => navigate("/orders/add")}
+            onClick={() => {
+              console.log("Add Order button clicked");
+              navigate("/orders/add");
+            }}
             className="flex items-center gap-1"
           >
             <PlusIcon className="h-4 w-4" />
