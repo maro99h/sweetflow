@@ -19,6 +19,11 @@ const Header = ({ showBackButton = false }: HeaderProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   
+  const handleNavigateToSettings = () => {
+    console.log("Navigating to settings page");
+    navigate("/settings");
+  };
+  
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -48,7 +53,7 @@ const Header = ({ showBackButton = false }: HeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <DropdownMenuItem onClick={handleNavigateToSettings}>
                 Business Settings
               </DropdownMenuItem>
             </DropdownMenuContent>

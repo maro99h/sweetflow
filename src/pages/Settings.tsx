@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
+import { Loader2 } from "lucide-react";
 
 type BusinessProfile = {
   id: string;
@@ -26,6 +27,16 @@ type BusinessProfile = {
   enable_daily_reminders?: boolean;
   enable_payment_alerts?: boolean;
 }
+
+const defaultProfile: Partial<BusinessProfile> = {
+  full_name: "",
+  business_name: "",
+  phone: "",
+  language: "en",
+  currency: "ILS",
+  enable_daily_reminders: false,
+  enable_payment_alerts: false,
+};
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -44,13 +55,15 @@ const SettingsPage = () => {
       
       try {
         setLoading(true);
+        console.log("Fetching profile for user:", user.id);
+        
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to handle the case where a profile doesn't exist
           
-        if (error) {
+        if (error && error.code !== 'PGRST116') { // Ignore the "no rows returned" error
           console.error('Error fetching profile:', error);
           toast({
             title: "Error loading profile",
@@ -60,16 +73,57 @@ const SettingsPage = () => {
           return;
         }
         
-        // Set retrieved profile data
-        setProfile(data as BusinessProfile);
-        
-        // Set form values
-        Object.entries(data).forEach(([key, value]) => {
-          // @ts-ignore
-          setValue(key, value);
-        });
+        // If no profile exists yet, create one
+        if (!data) {
+          console.log("No profile found, creating default profile");
+          
+          // Create a new profile with default values
+          const newProfile = {
+            id: user.id,
+            ...defaultProfile,
+            email: user.email,
+          };
+          
+          const { error: createError } = await supabase
+            .from('profiles')
+            .insert([newProfile]);
+            
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            toast({
+              title: "Error creating profile",
+              description: "Could not create your profile",
+              variant: "destructive"
+            });
+            return;
+          }
+          
+          // Set the newly created profile
+          setProfile(newProfile as BusinessProfile);
+          
+          // Set form values
+          Object.entries(newProfile).forEach(([key, value]) => {
+            // @ts-ignore
+            setValue(key, value);
+          });
+        } else {
+          console.log("Profile found:", data);
+          // Set retrieved profile data
+          setProfile(data as BusinessProfile);
+          
+          // Set form values
+          Object.entries(data).forEach(([key, value]) => {
+            // @ts-ignore
+            setValue(key, value);
+          });
+        }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error in profile logic:', error);
+        toast({
+          title: "Error",
+          description: "There was an unexpected error loading your profile",
+          variant: "destructive"
+        });
       } finally {
         setLoading(false);
       }
@@ -161,6 +215,21 @@ const SettingsPage = () => {
       setLoading(false);
     }
   };
+
+  // Show loading state
+  if (loading && !profile) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header showBackButton={true} />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-center items-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+            <p>Loading your settings...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
