@@ -1,6 +1,7 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Order } from "@/types/orders";
@@ -41,6 +42,7 @@ const useOrders = (status?: string) => {
 
 // Shared component structure for all order views
 const OrdersView = ({ title, status }: { title: string; status?: string }) => {
+  const navigate = useNavigate();
   const { data: orders, isLoading, error, refetch } = useOrders(status);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -54,6 +56,10 @@ const OrdersView = ({ title, status }: { title: string; status?: string }) => {
   const handleDelete = (order: Order) => {
     setSelectedOrder(order);
     setDeleteDialogOpen(true);
+  };
+
+  const handleViewDetails = (order: Order) => {
+    navigate(`/orders/${order.id}`);
   };
   
   const handleEditSuccess = () => {
@@ -76,6 +82,7 @@ const OrdersView = ({ title, status }: { title: string; status?: string }) => {
         error={error}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onViewDetails={handleViewDetails}
       />
       
       {selectedOrder && (

@@ -13,9 +13,10 @@ interface OrderListProps {
   error: Error | null;
   onEdit: (order: Order) => void;
   onDelete: (order: Order) => void;
+  onViewDetails: (order: Order) => void;
 }
 
-const OrderList = ({ orders, isLoading, error, onEdit, onDelete }: OrderListProps) => {
+const OrderList = ({ orders, isLoading, error, onEdit, onDelete, onViewDetails }: OrderListProps) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -96,7 +97,11 @@ const OrderList = ({ orders, isLoading, error, onEdit, onDelete }: OrderListProp
   return (
     <div className="space-y-4">
       {orders.map((order) => (
-        <Card key={order.id} className="p-4">
+        <Card 
+          key={order.id} 
+          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => onViewDetails(order)}
+        >
           <div className="flex flex-col space-y-2">
             <div className="flex justify-between items-start">
               <h3 className="font-medium text-lg">{order.client_name}</h3>
@@ -118,12 +123,15 @@ const OrderList = ({ orders, isLoading, error, onEdit, onDelete }: OrderListProp
             <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
               <span className="font-medium">{order.total_price.toFixed(2)} ILS</span>
               
-              <div className="flex space-x-2">
+              <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
                 <Button 
                   variant="outline" 
                   size="sm"
                   className="flex items-center"
-                  onClick={() => onEdit(order)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(order);
+                  }}
                 >
                   <Edit className="h-4 w-4 mr-1" /> Edit
                 </Button>
@@ -131,7 +139,10 @@ const OrderList = ({ orders, isLoading, error, onEdit, onDelete }: OrderListProp
                   variant="outline" 
                   size="sm"
                   className="flex items-center text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => onDelete(order)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(order);
+                  }}
                 >
                   <Trash2 className="h-4 w-4 mr-1" /> Delete
                 </Button>
